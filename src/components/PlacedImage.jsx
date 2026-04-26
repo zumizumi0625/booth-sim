@@ -33,8 +33,11 @@ export default function PlacedImage({ image }) {
 
   // surfaceNormal は画像が貼られている面の外向き法線。回転行列を組み立てる。
   const normal = new THREE.Vector3(...image.normal)
-  const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
-  const rotEuler = new THREE.Euler().setFromQuaternion(quat)
+  const baseQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+  // rotationOnSurface: 画像をその貼られた面の法線軸まわりに回す（R キーで 90°）
+  const surfaceRotQuat = new THREE.Quaternion().setFromAxisAngle(normal, image.rotationOnSurface ?? 0)
+  const finalQuat = surfaceRotQuat.multiply(baseQuat)
+  const rotEuler = new THREE.Euler().setFromQuaternion(finalQuat)
 
   // 表面に貼り付け、わずかに浮かす
   const offset = 0.005
