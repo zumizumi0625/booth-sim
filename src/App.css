@@ -1,0 +1,130 @@
+:root {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-text: #222;
+  --color-muted: #777;
+  --color-accent: #2b6cb0;
+  --color-border: #e0e0e0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic UI',
+    sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.app {
+  display: grid;
+  grid-template-areas:
+    'header header'
+    'sidebar scene';
+  grid-template-rows: 56px 1fr;
+  grid-template-columns: 280px 1fr;
+  height: 100vh;
+}
+
+.app-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.app-subtitle {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.sidebar {
+  grid-area: sidebar;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.sidebar section {
+  margin-bottom: 20px;
+}
+
+.sidebar h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-muted);
+  margin-bottom: 8px;
+}
+
+.preset-list,
+.wall-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.preset-row:hover {
+  background: #f0f0f0;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-muted);
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.hint p {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.hint ul {
+  margin-left: 18px;
+  margin-bottom: 4px;
+}
+
+.hint-note {
+  font-size: 11px;
+  font-style: italic;
+}
+
+.scene-wrap {
+  grid-area: scene;
+  position: relative;
+  overflow: hidden;
+}
+
+.scene-wrap canvas {
+  display: block;
+}
