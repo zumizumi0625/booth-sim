@@ -21,7 +21,7 @@ export default function PlacedFurniture({ item }) {
       ref={ref}
       position={item.position}
       rotation={[0, item.rotationY ?? 0, 0]}
-      onPointerDown={(e) => {
+      onClick={(e) => {
         e.stopPropagation()
         select(item.id)
       }}

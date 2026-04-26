@@ -12,9 +12,7 @@ function FloorSurface({ size, onPlacingHover, onPlacingClick, onBackgroundClick 
       position={[0, 0, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
       onPointerMove={(e) => onPlacingHover?.('floor', e)}
-      onPointerDown={(e) => {
-        if (e.button === 0) onPlacingClick?.('floor', e, () => onBackgroundClick?.())
-      }}
+      onClick={(e) => onPlacingClick?.('floor', e, () => onBackgroundClick?.())}
     >
       <planeGeometry args={[w, d]} />
       <meshStandardMaterial color={FLOOR_COLOR} />
@@ -28,9 +26,7 @@ function Wall({ which, position, args, onPlacingHover, onPlacingClick }) {
       position={position}
       receiveShadow
       onPointerMove={(e) => onPlacingHover?.(`wall:${which}`, e)}
-      onPointerDown={(e) => {
-        if (e.button === 0) onPlacingClick?.(`wall:${which}`, e)
-      }}
+      onClick={(e) => onPlacingClick?.(`wall:${which}`, e)}
     >
       <boxGeometry args={args} />
       <meshStandardMaterial color={WALL_COLOR} />

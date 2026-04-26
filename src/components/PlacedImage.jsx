@@ -48,7 +48,7 @@ export default function PlacedImage({ image }) {
     <group
       position={pos}
       rotation={[rotEuler.x, rotEuler.y, rotEuler.z]}
-      onPointerDown={(e) => {
+      onClick={(e) => {
         e.stopPropagation()
         select(image.id)
       }}

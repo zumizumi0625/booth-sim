@@ -108,18 +108,33 @@ export default function Scene({ captureRef }) {
   }
 
   const onSurfaceClick = (surfaceId, e) => {
-    if (mode !== 'placing') return
-    e.stopPropagation()
-    if (placingKind === 'furniture') {
-      if (surfaceId !== 'floor') return
-      placeFurniture(hover.point ?? [snap(e.point.x), 0, snap(e.point.z)])
-    } else if (placingKind === 'image') {
-      placeImage({
-        position: hover.point ?? [e.point.x, e.point.y, e.point.z],
-        normal: hover.normal,
-        surface: surfaceId,
-        rotationOnSurface: 0,
-      })
+    if (mode === 'placing') {
+      e.stopPropagation()
+      if (placingKind === 'furniture') {
+        if (surfaceId !== 'floor') return
+        placeFurniture(hover.point ?? [snap(e.point.x), 0, snap(e.point.z)])
+      } else if (placingKind === 'image') {
+        placeImage({
+          position: hover.point ?? [e.point.x, e.point.y, e.point.z],
+          normal: hover.normal,
+          surface: surfaceId,
+          rotationOnSurface: 0,
+        })
+      }
+      return
+    }
+
+    // Click-to-move: 家具が選択中で床をクリックしたら移動。床以外/家具以外は deselect
+    if (selectedId && surfaceId === 'floor') {
+      const isFurniture = layout.items.find((i) => i.id === selectedId)
+      if (isFurniture) {
+        e.stopPropagation()
+        const sx = snap(e.point.x)
+        const sz = snap(e.point.z)
+        moveItem(selectedId, [sx, 0, sz])
+      } else {
+        deselect()
+      }
     }
   }
 
@@ -257,9 +272,7 @@ function FurnitureTopHitArea({ position, rotationY, size, onSurfaceHover, onSurf
       position={position}
       rotation={[-Math.PI / 2, 0, rotationY]}
       onPointerMove={(e) => onSurfaceHover('furnitureTop', e)}
-      onPointerDown={(e) => {
-        if (e.button === 0) onSurfaceClick('furnitureTop', e)
-      }}
+      onClick={(e) => onSurfaceClick('furnitureTop', e)}
     >
       <planeGeometry args={[size.w, size.d]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
