@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useBoothStore } from '../stores/useBoothStore'
 
@@ -14,8 +14,12 @@ function loadTex(src) {
 
 export default function PlacedImage({ image }) {
   const [tex, setTex] = useState(null)
+  const [dragging, setDragging] = useState(false)
   const selectedId = useBoothStore((s) => s.selectedId)
+  const cameraMode = useBoothStore((s) => s.cameraMode)
+  const placingMode = useBoothStore((s) => s.mode)
   const select = useBoothStore((s) => s.select)
+  const moveImageOnSurface = useBoothStore((s) => s.moveImageOnSurface)
   const isSelected = selectedId === image.id
 
   useEffect(() => {
@@ -31,30 +35,63 @@ export default function PlacedImage({ image }) {
   const w = image.widthMeters
   const h = w / image.naturalAspect
 
-  // surfaceNormal は画像が貼られている面の外向き法線。回転行列を組み立てる。
   const normal = new THREE.Vector3(...image.normal)
   const baseQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
-  // rotationOnSurface: 画像をその貼られた面の法線軸まわりに回す（R キーで 90°）
-  const surfaceRotQuat = new THREE.Quaternion().setFromAxisAngle(normal, image.rotationOnSurface ?? 0)
+  const surfaceRotQuat = new THREE.Quaternion().setFromAxisAngle(
+    normal,
+    image.rotationOnSurface ?? 0,
+  )
   const finalQuat = surfaceRotQuat.multiply(baseQuat)
   const rotEuler = new THREE.Euler().setFromQuaternion(finalQuat)
 
-  // 表面に貼り付け、わずかに浮かす
   const offset = 0.005
-  const pos = [
+  const renderPos = [
     image.position[0] + normal.x * offset,
     image.position[1] + normal.y * offset,
     image.position[2] + normal.z * offset,
   ]
 
+  // ドラッグ用のサーフェス平面（画像が貼り付いている面そのもの）
+  const surfacePlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+    normal,
+    new THREE.Vector3(...image.position),
+  )
+
+  const onPointerDown = (e) => {
+    if (cameraMode !== 'edit') return
+    if (placingMode === 'placing') return
+    if (e.button !== 0) return
+    e.stopPropagation()
+    select(image.id)
+    e.target.setPointerCapture(e.pointerId)
+    setDragging(true)
+  }
+
+  const onPointerMove = (e) => {
+    if (!dragging) return
+    e.stopPropagation()
+    const target = new THREE.Vector3()
+    if (!e.ray.intersectPlane(surfacePlane, target)) return
+    moveImageOnSurface(image.id, [target.x, target.y, target.z])
+  }
+
+  const onPointerUp = (e) => {
+    if (!dragging) return
+    e.stopPropagation()
+    try {
+      e.target.releasePointerCapture(e.pointerId)
+    } catch {}
+    setDragging(false)
+  }
+
   return (
     <group
-      position={pos}
+      position={renderPos}
       rotation={[rotEuler.x, rotEuler.y, rotEuler.z]}
-      onClick={(e) => {
-        e.stopPropagation()
-        select(image.id)
-      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       <mesh>
         <planeGeometry args={[w, h]} />

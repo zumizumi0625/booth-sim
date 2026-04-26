@@ -34,6 +34,8 @@ export const useBoothStore = create(
       placingKind: null,
       pendingImage: null,
       selectedId: null,
+      cameraMode: 'edit',
+      draggingId: null,
 
       getCurrent: () => {
         const { layouts, currentLayoutId } = get()
@@ -73,6 +75,15 @@ export const useBoothStore = create(
 
       cancelPlacing: () =>
         set({ mode: 'idle', placingKind: null, placingType: null, pendingImage: null }),
+
+      setCameraMode: (cameraMode) => set({ cameraMode }),
+      setDraggingId: (draggingId) => set({ draggingId }),
+
+      setPendingImageWidth: (widthMeters) => {
+        const { pendingImage } = get()
+        if (!pendingImage) return
+        set({ pendingImage: { ...pendingImage, widthMeters } })
+      },
 
       placeFurniture: (position, rotationY = 0) => {
         const { placingType } = get()
@@ -144,6 +155,29 @@ export const useBoothStore = create(
         get().updateCurrent((l) => ({
           images: l.images.map((im) => (im.id === id ? { ...im, ...patch } : im)),
         })),
+
+      // 画像を表面（normal で定義される平面）に強制スナップさせて移動
+      moveImageOnSurface: (id, worldPoint) => {
+        get().updateCurrent((l) => ({
+          images: l.images.map((im) => {
+            if (im.id !== id) return im
+            const n = im.normal
+            // 平面上の点に投影: P' = P - ((P - P0) · n) * n  -- ここでは P0 = im.position（既知の表面上の点）
+            const dx = worldPoint[0] - im.position[0]
+            const dy = worldPoint[1] - im.position[1]
+            const dz = worldPoint[2] - im.position[2]
+            const d = dx * n[0] + dy * n[1] + dz * n[2]
+            return {
+              ...im,
+              position: [
+                worldPoint[0] - d * n[0],
+                worldPoint[1] - d * n[1],
+                worldPoint[2] - d * n[2],
+              ],
+            }
+          }),
+        }))
+      },
 
       addLayout: () => {
         const id = newId()

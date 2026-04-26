@@ -52,6 +52,7 @@ export default function Scene({ captureRef }) {
   const layout = useBoothStore((s) => s.getCurrent())
   const size = useBoothStore((s) => s.getBoothSize())
   const mode = useBoothStore((s) => s.mode)
+  const cameraMode = useBoothStore((s) => s.cameraMode)
   const placingKind = useBoothStore((s) => s.placingKind)
   const placeFurniture = useBoothStore((s) => s.placeFurniture)
   const placeImage = useBoothStore((s) => s.placeImage)
@@ -124,17 +125,9 @@ export default function Scene({ captureRef }) {
       return
     }
 
-    // Click-to-move: 家具が選択中で床をクリックしたら移動。床以外/家具以外は deselect
-    if (selectedId && surfaceId === 'floor') {
-      const isFurniture = layout.items.find((i) => i.id === selectedId)
-      if (isFurniture) {
-        e.stopPropagation()
-        const sx = snap(e.point.x)
-        const sz = snap(e.point.z)
-        moveItem(selectedId, [sx, 0, sz])
-      } else {
-        deselect()
-      }
+    // 編集モードでドラッグできるので click-to-move は廃止。床クリックは deselect 用途のみ
+    if (cameraMode === 'edit' && selectedId && surfaceId === 'floor') {
+      deselect()
     }
   }
 
@@ -236,7 +229,7 @@ export default function Scene({ captureRef }) {
         dampingFactor={0.1}
         target={[0, size.h / 2, 0]}
         mouseButtons={{ LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }}
-        enabled={mode !== 'placing'}
+        enabled={cameraMode === 'view' && mode !== 'placing'}
       />
     </Canvas>
   )

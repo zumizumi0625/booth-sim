@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import ViewButtons from './components/ViewButtons'
 import CaptureButton from './components/CaptureButton'
 import KeyboardHandler from './components/KeyboardHandler'
+import ModeToggle from './components/ModeToggle'
 import './App.css'
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
         <h1>booth-sim</h1>
         <span className="app-subtitle">3D Booth Simulator</span>
         <div className="header-actions">
+          <ModeToggle />
           <CaptureButton captureRef={captureRef} />
         </div>
       </header>

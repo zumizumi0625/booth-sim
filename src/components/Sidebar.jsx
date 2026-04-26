@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useBoothStore, PRESETS } from '../stores/useBoothStore'
 import { FURNITURE_TYPES } from '../data/furniture'
-import { PRINT_SIZES } from '../data/printSizes'
+import { PRINT_SIZES, widthFromPrint } from '../data/printSizes'
 
 export default function Sidebar() {
   const layout = useBoothStore((s) => s.getCurrent())
@@ -26,6 +26,18 @@ export default function Sidebar() {
   const [customD, setCustomD] = useState(layout.customSize?.d ?? 3)
   const [customH, setCustomH] = useState(layout.customSize?.h ?? 2.7)
   const [printKey, setPrintKey] = useState('default60')
+  const pendingImage = useBoothStore((s) => s.pendingImage)
+  const setPendingImageWidth = useBoothStore((s) => s.setPendingImageWidth)
+
+  // 印刷サイズ変更時に未配置の pendingImage の幅を更新
+  useEffect(() => {
+    if (pendingImage) {
+      const newWidth = widthFromPrint(printKey, pendingImage.naturalAspect)
+      if (Math.abs(newWidth - pendingImage.widthMeters) > 0.001) {
+        setPendingImageWidth(newWidth)
+      }
+    }
+  }, [printKey, pendingImage, setPendingImageWidth])
   const [renameValue, setRenameValue] = useState(layout.name)
   const fileRef = useRef(null)
 
@@ -43,7 +55,7 @@ export default function Sidebar() {
         i.src = dataUrl
       })
       const aspect = img.naturalWidth / img.naturalHeight
-      const widthMeters = PRINT_SIZES[printKey].widthMeters
+      const widthMeters = widthFromPrint(printKey, aspect)
       enterPlacing('image', null, { src: dataUrl, naturalAspect: aspect, widthMeters })
       // 1枚ずつ配置するので最初の1枚だけプレースキューに乗せる
       break
@@ -270,12 +282,15 @@ export default function Sidebar() {
       </section>
 
       <section className="hint">
-        <p>操作 (Day3):</p>
+        <p>モード切替（ヘッダー右上）:</p>
         <ul>
-          <li>左ドラッグ: pan / 右ドラッグ: orbit / scroll: zoom</li>
-          <li>家具/画像クリックで選択</li>
+          <li><b>✏️ 編集</b>: クリックで選択、ドラッグで移動</li>
+          <li><b>🎥 視点</b>: ドラッグでカメラ pan / 右ドラッグで orbit / scroll zoom</li>
+        </ul>
+        <p style={{ marginTop: 8 }}>共通:</p>
+        <ul>
           <li><b>R</b> 90°回転 / <b>Delete</b> 削除 / <b>Esc</b> 解除</li>
-          <li>右クリック or Esc で配置キャンセル</li>
+          <li><b>矢印キー</b>: 25cm 微調整（壁画像は壁面に沿って移動）</li>
         </ul>
       </section>
     </aside>
