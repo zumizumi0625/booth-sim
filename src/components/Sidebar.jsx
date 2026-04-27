@@ -163,19 +163,37 @@ export default function Sidebar({ onCloseRequest }) {
             カスタム
           </label>
           {(layout.presetKey === 'custom' || !!layout.customSize) && (
-            <div className="custom-grid">
+            <div className="custom-list">
               {[
-                ['W', customW, setCustomW],
-                ['D', customD, setCustomD],
-                ['H', customH, setCustomH],
-              ].map(([label, value, setter]) => (
-                <label key={label} className="custom-cell">
-                  {label}
+                ['W (幅)', customW, setCustomW, 1, 20, 0.1],
+                ['D (奥行)', customD, setCustomD, 1, 20, 0.1],
+                ['H (高さ)', customH, setCustomH, 2, 6, 0.1],
+              ].map(([label, value, setter, min, max, step]) => (
+                <div key={label} className="custom-row">
+                  <span className="custom-label">{label}</span>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={value}
+                    onChange={(e) => {
+                      const v = Number(e.target.value)
+                      setter(v)
+                      // スライダーは即時反映（連続的にプレビューが動く）
+                      const next = { w: customW, d: customD, h: customH }
+                      if (label.startsWith('W')) next.w = v
+                      else if (label.startsWith('D')) next.d = v
+                      else if (label.startsWith('H')) next.h = v
+                      setCustomSize(next)
+                    }}
+                    className="custom-slider"
+                  />
                   <input
                     type="number"
-                    step="0.1"
-                    min="1"
-                    max="20"
+                    step={step}
+                    min={min}
+                    max={max}
                     value={value}
                     onChange={(e) => {
                       const v = Number(e.target.value)
@@ -184,9 +202,10 @@ export default function Sidebar({ onCloseRequest }) {
                     onBlur={() =>
                       setCustomSize({ w: customW, d: customD, h: customH })
                     }
+                    className="custom-number"
                   />
-                  m
-                </label>
+                  <span className="custom-unit">m</span>
+                </div>
               ))}
             </div>
           )}
