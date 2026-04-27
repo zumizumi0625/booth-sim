@@ -25,10 +25,13 @@ export default function PlacedFurniture({ item }) {
   const onPointerDown = (e) => {
     if (cameraMode !== 'edit') return
     if (placingMode === 'placing') return
-    if (e.button !== 0) return
+    // タッチでは button が undefined / 0 のみ受ける
+    if (e.button !== undefined && e.button !== 0) return
     e.stopPropagation()
     select(item.id)
-    e.target.setPointerCapture(e.pointerId)
+    try {
+      e.target.setPointerCapture(e.pointerId)
+    } catch {}
     setDragging(true)
   }
 

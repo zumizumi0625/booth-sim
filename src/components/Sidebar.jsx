@@ -3,7 +3,7 @@ import { useBoothStore, PRESETS } from '../stores/useBoothStore'
 import { FURNITURE_TYPES } from '../data/furniture'
 import { PRINT_SIZES, widthFromPrint } from '../data/printSizes'
 
-export default function Sidebar() {
+export default function Sidebar({ onCloseRequest }) {
   const layout = useBoothStore((s) => s.getCurrent())
   const layouts = useBoothStore((s) => s.layouts)
   const setPresetKey = useBoothStore((s) => s.setPresetKey)
@@ -58,6 +58,7 @@ export default function Sidebar() {
       const aspect = img.naturalWidth / img.naturalHeight
       const widthMeters = widthFromPrint(printKey, aspect, orientationMode)
       enterPlacing('image', null, { src: dataUrl, naturalAspect: aspect, widthMeters })
+      onCloseRequest?.()
       // 1枚ずつ配置するので最初の1枚だけプレースキューに乗せる
       break
     }
@@ -225,7 +226,10 @@ export default function Sidebar() {
               }
               onClick={() => {
                 if (mode === 'placing' && placingType === key) cancelPlacing()
-                else enterPlacing('furniture', key)
+                else {
+                  enterPlacing('furniture', key)
+                  onCloseRequest?.()
+                }
               }}
             >
               <span className="palette-label">{def.label}</span>
