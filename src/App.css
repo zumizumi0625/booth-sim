@@ -277,6 +277,37 @@ body,
   font-size: 12px;
 }
 
+.orientation-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+.orientation-label {
+  color: var(--color-muted);
+  margin-right: 4px;
+}
+.orientation-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  background: #fafafa;
+}
+.orientation-pill:has(input:checked) {
+  background: var(--color-active);
+  color: #fff;
+  border-color: var(--color-active);
+}
+.orientation-pill input {
+  display: none;
+}
+
 .dropzone {
   border: 2px dashed var(--color-border);
   border-radius: 6px;

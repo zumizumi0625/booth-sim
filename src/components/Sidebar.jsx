@@ -26,18 +26,19 @@ export default function Sidebar() {
   const [customD, setCustomD] = useState(layout.customSize?.d ?? 3)
   const [customH, setCustomH] = useState(layout.customSize?.h ?? 2.7)
   const [printKey, setPrintKey] = useState('default60')
+  const [orientationMode, setOrientationMode] = useState('auto')
   const pendingImage = useBoothStore((s) => s.pendingImage)
   const setPendingImageWidth = useBoothStore((s) => s.setPendingImageWidth)
 
-  // 印刷サイズ変更時に未配置の pendingImage の幅を更新
+  // 印刷サイズ or 向きが変わったら、未配置の pendingImage の幅を更新
   useEffect(() => {
     if (pendingImage) {
-      const newWidth = widthFromPrint(printKey, pendingImage.naturalAspect)
+      const newWidth = widthFromPrint(printKey, pendingImage.naturalAspect, orientationMode)
       if (Math.abs(newWidth - pendingImage.widthMeters) > 0.001) {
         setPendingImageWidth(newWidth)
       }
     }
-  }, [printKey, pendingImage, setPendingImageWidth])
+  }, [printKey, orientationMode, pendingImage, setPendingImageWidth])
   const [renameValue, setRenameValue] = useState(layout.name)
   const fileRef = useRef(null)
 
@@ -55,7 +56,7 @@ export default function Sidebar() {
         i.src = dataUrl
       })
       const aspect = img.naturalWidth / img.naturalHeight
-      const widthMeters = widthFromPrint(printKey, aspect)
+      const widthMeters = widthFromPrint(printKey, aspect, orientationMode)
       enterPlacing('image', null, { src: dataUrl, naturalAspect: aspect, widthMeters })
       // 1枚ずつ配置するので最初の1枚だけプレースキューに乗せる
       break
@@ -254,6 +255,25 @@ export default function Sidebar() {
             ))}
           </select>
         </label>
+        <div className="orientation-row">
+          <span className="orientation-label">向き</span>
+          {[
+            ['auto', '自動'],
+            ['portrait', '縦'],
+            ['landscape', '横'],
+          ].map(([key, label]) => (
+            <label key={key} className="orientation-pill">
+              <input
+                type="radio"
+                name="orientation"
+                value={key}
+                checked={orientationMode === key}
+                onChange={() => setOrientationMode(key)}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
         <div
           className="dropzone"
           onDragOver={(e) => {

@@ -9,10 +9,14 @@ export const PRINT_SIZES = {
   B2: { label: 'B2 (515×728)', short: 0.515, long: 0.728 },
 }
 
-export function widthFromPrint(key, naturalAspect) {
+// orientationMode: 'auto' | 'portrait' | 'landscape'
+//   auto      : naturalAspect でランドスケープ/ポートレートを自動判定
+//   portrait  : 縦（短辺を幅にする）
+//   landscape : 横（長辺を幅にする）
+export function widthFromPrint(key, naturalAspect, orientationMode = 'auto') {
   const ps = PRINT_SIZES[key]
   if (!ps) return 0.6
-  // naturalAspect = imgWidth / imgHeight
-  // ランドスケープ (>1) なら 長辺が幅, ポートレート (<=1) なら 短辺が幅
+  if (orientationMode === 'portrait') return ps.short
+  if (orientationMode === 'landscape') return ps.long
   return naturalAspect > 1 ? ps.long : ps.short
 }
