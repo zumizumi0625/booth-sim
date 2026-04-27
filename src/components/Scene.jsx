@@ -229,6 +229,7 @@ export default function Scene({ captureRef }) {
         dampingFactor={0.1}
         target={[0, size.h / 2, 0]}
         mouseButtons={{ LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }}
+        touches={{ ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE }}
         enabled={cameraMode === 'view' && mode !== 'placing'}
       />
     </Canvas>
