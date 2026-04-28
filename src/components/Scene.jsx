@@ -97,6 +97,14 @@ export default function Scene({ captureRef }) {
       const sx = snap(point[0])
       const sz = snap(point[2])
       setHover({ point: [sx, 0, sz], normal: [0, 1, 0], surface: surfaceId })
+    } else if (placingKind === 'primitive' && surfaceId === 'furnitureTop') {
+      // 円柱・直方体を家具の天板に置く（5cm スナップ、y は家具上面の高さ）
+      const round5 = (v) => Math.round(v / 0.05) * 0.05
+      setHover({
+        point: [round5(point[0]), point[1], round5(point[2])],
+        normal: [0, 1, 0],
+        surface: 'furnitureTop',
+      })
     } else if (placingKind === 'image') {
       // Image: snap on surface plane (rounded to 5cm for finesse)
       const round5 = (v) => Math.round(v / 0.05) * 0.05
@@ -112,7 +120,9 @@ export default function Scene({ captureRef }) {
     if (mode === 'placing') {
       e.stopPropagation()
       if (placingKind === 'furniture' || placingKind === 'primitive') {
-        if (surfaceId !== 'floor') return
+        // 家具は床のみ。プリミティブは床と家具上面 OK
+        if (placingKind === 'furniture' && surfaceId !== 'floor') return
+        if (placingKind === 'primitive' && surfaceId !== 'floor' && surfaceId !== 'furnitureTop') return
         placeFurniture(hover.point ?? [snap(e.point.x), 0, snap(e.point.z)])
       } else if (placingKind === 'image') {
         placeImage({
@@ -265,7 +275,8 @@ function PlacedFurnitureWithRaycast({ item, onSurfaceHover, onSurfaceClick }) {
 
 function FurnitureTopHitArea({ position, rotationY, size, onSurfaceHover, onSurfaceClick }) {
   const placingKind = useBoothStore((s) => s.placingKind)
-  if (!size || placingKind !== 'image') return null
+  // 画像 or プリミティブの配置時のみ天板を raycast 対象にする
+  if (!size || (placingKind !== 'image' && placingKind !== 'primitive')) return null
   return (
     <mesh
       position={position}
