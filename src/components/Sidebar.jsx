@@ -3,6 +3,7 @@ import { useBoothStore, PRESETS } from '../stores/useBoothStore'
 import { FURNITURE_TYPES } from '../data/furniture'
 import { PRINT_SIZES, widthFromPrint } from '../data/printSizes'
 import SelectedItemEditor from './SelectedItemEditor'
+import PrimitiveSection from './PrimitiveSection'
 
 export default function Sidebar({ onCloseRequest }) {
   const layout = useBoothStore((s) => s.getCurrent())
@@ -234,6 +235,8 @@ export default function Sidebar({ onCloseRequest }) {
           ))}
         </div>
       </section>
+
+      <PrimitiveSection onCloseRequest={onCloseRequest} />
 
       <section>
         <h2>家具を置く</h2>

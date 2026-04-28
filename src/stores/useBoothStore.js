@@ -69,12 +69,22 @@ export const useBoothStore = create(
           mode: 'placing',
           placingKind: kind,
           placingType: type,
-          pendingImage: payload,
+          pendingImage: kind === 'image' ? payload : null,
+          pendingPrimitiveParams: kind === 'primitive' ? payload : null,
           selectedId: null,
         }),
 
+      pendingPrimitiveParams: null,
+      setPendingPrimitiveParams: (params) => set({ pendingPrimitiveParams: params }),
+
       cancelPlacing: () =>
-        set({ mode: 'idle', placingKind: null, placingType: null, pendingImage: null }),
+        set({
+          mode: 'idle',
+          placingKind: null,
+          placingType: null,
+          pendingImage: null,
+          pendingPrimitiveParams: null,
+        }),
 
       setCameraMode: (cameraMode) => set({ cameraMode }),
       setDraggingId: (draggingId) => set({ draggingId }),
@@ -86,14 +96,26 @@ export const useBoothStore = create(
       },
 
       placeFurniture: (position, rotationY = 0) => {
-        const { placingType } = get()
+        const { placingType, placingKind, pendingPrimitiveParams } = get()
         if (!placingType) return
         const id = newId()
-        get().updateCurrent((l) => ({
-          items: [...l.items, { id, type: placingType, position, rotationY }],
-        }))
-        set({ mode: 'idle', placingType: null, placingKind: null, selectedId: id })
+        const params = placingKind === 'primitive' ? pendingPrimitiveParams : null
+        const item = { id, type: placingType, position, rotationY }
+        if (params) item.params = params
+        get().updateCurrent((l) => ({ items: [...l.items, item] }))
+        set({
+          mode: 'idle',
+          placingType: null,
+          placingKind: null,
+          pendingPrimitiveParams: null,
+          selectedId: id,
+        })
       },
+
+      updateItemParams: (id, params) =>
+        get().updateCurrent((l) => ({
+          items: l.items.map((it) => (it.id === id ? { ...it, params } : it)),
+        })),
 
       placeImage: (placement) => {
         const { pendingImage } = get()

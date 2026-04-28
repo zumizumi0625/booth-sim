@@ -3,7 +3,8 @@ import * as THREE from 'three'
 import { Edges } from '@react-three/drei'
 import { useBoothStore, snap } from '../stores/useBoothStore'
 import { FURNITURE_TYPES } from '../data/furniture'
-import Furniture from './Furniture'
+import { PRIMITIVES } from '../data/primitives'
+import Furniture, { getPrimitiveBBox } from './Furniture'
 import { clampToBooth } from './Booth'
 
 const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
@@ -19,9 +20,13 @@ export default function PlacedFurniture({ item }) {
   const size = useBoothStore((s) => s.getBoothSize())
   const isSelected = selectedId === item.id
 
-  const def = FURNITURE_TYPES[item.type]
+  const isPrimitive = !!PRIMITIVES[item.type]
+  const def = FURNITURE_TYPES[item.type] ?? PRIMITIVES[item.type]
   if (!def) return null
-  const effectiveSize = item.dimsOverride ?? def.size
+  // 家具なら dimsOverride、プリミティブなら params から bbox を計算
+  const bbox = isPrimitive
+    ? getPrimitiveBBox(item.type, item.params ?? def.defaultParams)
+    : (item.dimsOverride ?? def.size)
 
   const onPointerDown = (e) => {
     if (cameraMode !== 'edit') return
@@ -64,10 +69,14 @@ export default function PlacedFurniture({ item }) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <Furniture type={item.type} sizeOverride={item.dimsOverride ?? null} />
+      <Furniture
+        type={item.type}
+        sizeOverride={item.dimsOverride ?? null}
+        params={item.params ?? null}
+      />
       {isSelected && (
-        <mesh position={[0, effectiveSize.h / 2, 0]}>
-          <boxGeometry args={[effectiveSize.w + 0.05, effectiveSize.h + 0.05, effectiveSize.d + 0.05]} />
+        <mesh position={[0, bbox.h / 2, 0]}>
+          <boxGeometry args={[bbox.w + 0.05, bbox.h + 0.05, bbox.d + 0.05]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
           <Edges color="#3b82f6" threshold={1} />
         </mesh>

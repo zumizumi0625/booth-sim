@@ -17,10 +17,22 @@ function loadTex(src) {
 export function FurniturePreview({ point }) {
   const placingType = useBoothStore((s) => s.placingType)
   const placingKind = useBoothStore((s) => s.placingKind)
-  if (!point || !placingType || placingKind !== 'furniture') return null
-  return (
-    <Furniture type={placingType} position={point} opacity={0.45} />
-  )
+  const pendingPrimitiveParams = useBoothStore((s) => s.pendingPrimitiveParams)
+  if (!point || !placingType) return null
+  if (placingKind === 'furniture') {
+    return <Furniture type={placingType} position={point} opacity={0.45} />
+  }
+  if (placingKind === 'primitive') {
+    return (
+      <Furniture
+        type={placingType}
+        position={point}
+        opacity={0.45}
+        params={pendingPrimitiveParams}
+      />
+    )
+  }
+  return null
 }
 
 export function ImagePreview({ point, normal }) {

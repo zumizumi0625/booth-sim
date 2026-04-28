@@ -1,4 +1,30 @@
 import { FURNITURE_TYPES } from '../data/furniture'
+import { PRIMITIVES } from '../data/primitives'
+
+function Cylinder({ params, color, opacity = 1 }) {
+  const { radius, length, axis = 'y' } = params
+  const transparent = opacity < 1
+  // 軸の向き: 'y' = 縦置き, 'x' = 横倒しX軸方向, 'z' = 横倒しZ軸方向
+  const rotation =
+    axis === 'x' ? [0, 0, Math.PI / 2] : axis === 'z' ? [Math.PI / 2, 0, 0] : [0, 0, 0]
+  const yCenter = axis === 'y' ? length / 2 : radius
+  return (
+    <mesh position={[0, yCenter, 0]} rotation={rotation} castShadow>
+      <cylinderGeometry args={[radius, radius, length, 32]} />
+      <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+    </mesh>
+  )
+}
+
+export function getPrimitiveBBox(type, params) {
+  if (type === 'cylinder') {
+    const { radius, length, axis = 'y' } = params
+    if (axis === 'y') return { w: 2 * radius, d: 2 * radius, h: length }
+    if (axis === 'x') return { w: length, d: 2 * radius, h: 2 * radius }
+    if (axis === 'z') return { w: 2 * radius, d: length, h: 2 * radius }
+  }
+  return { w: 0.5, d: 0.5, h: 0.5 }
+}
 
 function Desk({ size, color, opacity = 1 }) {
   const { w, d, h } = size
@@ -80,7 +106,24 @@ export default function Furniture({
   onPlacingHover,
   highlight = false,
   sizeOverride = null,
+  params = null,
 }) {
+  // プリミティブ（円柱など）
+  if (PRIMITIVES[type]) {
+    const def = PRIMITIVES[type]
+    const renderColor = highlight ? '#3b82f6' : def.color
+    const effectiveParams = params ?? def.defaultParams
+    return (
+      <group
+        position={position}
+        rotation={[0, rotationY, 0]}
+        onPointerDown={onPointerDown}
+      >
+        <Cylinder params={effectiveParams} color={renderColor} opacity={opacity} />
+      </group>
+    )
+  }
+
   const def = FURNITURE_TYPES[type]
   if (!def) return null
   const size = sizeOverride ?? def.size

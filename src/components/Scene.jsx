@@ -93,7 +93,7 @@ export default function Scene({ captureRef }) {
       normal = [0, 1, 0]
     }
 
-    if (placingKind === 'furniture' && surfaceId === 'floor') {
+    if ((placingKind === 'furniture' || placingKind === 'primitive') && surfaceId === 'floor') {
       const sx = snap(point[0])
       const sz = snap(point[2])
       setHover({ point: [sx, 0, sz], normal: [0, 1, 0], surface: surfaceId })
@@ -111,7 +111,7 @@ export default function Scene({ captureRef }) {
   const onSurfaceClick = (surfaceId, e) => {
     if (mode === 'placing') {
       e.stopPropagation()
-      if (placingKind === 'furniture') {
+      if (placingKind === 'furniture' || placingKind === 'primitive') {
         if (surfaceId !== 'floor') return
         placeFurniture(hover.point ?? [snap(e.point.x), 0, snap(e.point.z)])
       } else if (placingKind === 'image') {
