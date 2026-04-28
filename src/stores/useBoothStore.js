@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 const PRESETS = {
-  small: { label: '小 3×3×2.5m', size: { w: 3, d: 3, h: 2.5 } },
+  small: { label: '小 3×3×2.7m', size: { w: 3, d: 3, h: 2.7 } },
   medium: { label: '中 6×3×2.7m', size: { w: 6, d: 3, h: 2.7 } },
   large: { label: '大 9×3×3m', size: { w: 9, d: 3, h: 3 } },
 }
