@@ -358,6 +358,27 @@ body,
   color: rgba(255, 255, 255, 0.85);
 }
 
+.primitive-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.primitive-tab {
+  flex: 1;
+  background: #fafafa;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.primitive-tab.active {
+  background: var(--color-active);
+  color: #fff;
+  border-color: var(--color-active);
+}
+
 .primitive-block {
   display: flex;
   flex-direction: column;

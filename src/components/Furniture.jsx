@@ -1,6 +1,17 @@
 import { FURNITURE_TYPES } from '../data/furniture'
 import { PRIMITIVES } from '../data/primitives'
 
+function PrimitiveBox({ params, color, opacity = 1 }) {
+  const { w, d, h } = params
+  const transparent = opacity < 1
+  return (
+    <mesh position={[0, h / 2, 0]} castShadow>
+      <boxGeometry args={[w, h, d]} />
+      <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+    </mesh>
+  )
+}
+
 function Cylinder({ params, color, opacity = 1 }) {
   const { radius, length, axis = 'y' } = params
   const transparent = opacity < 1
@@ -22,6 +33,9 @@ export function getPrimitiveBBox(type, params) {
     if (axis === 'y') return { w: 2 * radius, d: 2 * radius, h: length }
     if (axis === 'x') return { w: length, d: 2 * radius, h: 2 * radius }
     if (axis === 'z') return { w: 2 * radius, d: length, h: 2 * radius }
+  }
+  if (type === 'box') {
+    return { w: params.w, d: params.d, h: params.h }
   }
   return { w: 0.5, d: 0.5, h: 0.5 }
 }
@@ -108,18 +122,19 @@ export default function Furniture({
   sizeOverride = null,
   params = null,
 }) {
-  // プリミティブ（円柱など）
+  // プリミティブ（円柱・直方体）
   if (PRIMITIVES[type]) {
     const def = PRIMITIVES[type]
     const renderColor = highlight ? '#3b82f6' : def.color
     const effectiveParams = params ?? def.defaultParams
+    const PrimitiveComp = type === 'cylinder' ? Cylinder : PrimitiveBox
     return (
       <group
         position={position}
         rotation={[0, rotationY, 0]}
         onPointerDown={onPointerDown}
       >
-        <Cylinder params={effectiveParams} color={renderColor} opacity={opacity} />
+        <PrimitiveComp params={effectiveParams} color={renderColor} opacity={opacity} />
       </group>
     )
   }
