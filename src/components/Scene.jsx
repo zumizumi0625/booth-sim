@@ -199,16 +199,20 @@ export default function Scene({ captureRef }) {
       <FurniturePreview point={hover.point} />
       <ImagePreview point={hover.point} normal={hover.normal} />
 
-      {selectedItem && (
-        <DimensionLabel
-          position={[
-            selectedItem.position[0],
-            (FURNITURE_TYPES[selectedItem.type]?.size.h ?? 1) + 0.3,
-            selectedItem.position[2],
-          ]}
-          text={dimensionText(FURNITURE_TYPES[selectedItem.type]?.size)}
-        />
-      )}
+      {selectedItem && (() => {
+        const effSize =
+          selectedItem.dimsOverride ?? FURNITURE_TYPES[selectedItem.type]?.size
+        return (
+          <DimensionLabel
+            position={[
+              selectedItem.position[0],
+              (effSize?.h ?? 1) + 0.3,
+              selectedItem.position[2],
+            ]}
+            text={dimensionText(effSize)}
+          />
+        )
+      })()}
       {selectedImage && (
         <DimensionLabel
           position={[
@@ -239,6 +243,7 @@ export default function Scene({ captureRef }) {
 // 家具コンポーネントの上面も raycast 対象にしたいので、wrapper を用意
 function PlacedFurnitureWithRaycast({ item, onSurfaceHover, onSurfaceClick }) {
   const def = FURNITURE_TYPES[item.type]
+  const effectiveSize = item.dimsOverride ?? def?.size
   return (
     <group>
       <PlacedFurniture item={item} />
@@ -246,11 +251,11 @@ function PlacedFurnitureWithRaycast({ item, onSurfaceHover, onSurfaceClick }) {
       <FurnitureTopHitArea
         position={[
           item.position[0],
-          (def?.size.h ?? 0) + 0.001,
+          (effectiveSize?.h ?? 0) + 0.001,
           item.position[2],
         ]}
         rotationY={item.rotationY ?? 0}
-        size={def?.size}
+        size={effectiveSize}
         onSurfaceHover={onSurfaceHover}
         onSurfaceClick={onSurfaceClick}
       />

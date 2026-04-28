@@ -21,6 +21,7 @@ export default function PlacedFurniture({ item }) {
 
   const def = FURNITURE_TYPES[item.type]
   if (!def) return null
+  const effectiveSize = item.dimsOverride ?? def.size
 
   const onPointerDown = (e) => {
     if (cameraMode !== 'edit') return
@@ -63,10 +64,10 @@ export default function PlacedFurniture({ item }) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <Furniture type={item.type} />
+      <Furniture type={item.type} sizeOverride={item.dimsOverride ?? null} />
       {isSelected && (
-        <mesh position={[0, def.size.h / 2, 0]}>
-          <boxGeometry args={[def.size.w + 0.05, def.size.h + 0.05, def.size.d + 0.05]} />
+        <mesh position={[0, effectiveSize.h / 2, 0]}>
+          <boxGeometry args={[effectiveSize.w + 0.05, effectiveSize.h + 0.05, effectiveSize.d + 0.05]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
           <Edges color="#3b82f6" threshold={1} />
         </mesh>
