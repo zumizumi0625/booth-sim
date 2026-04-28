@@ -128,6 +128,21 @@ export const useBoothStore = create(
           items: l.items.map((it) => (it.id === id ? { ...it, position } : it)),
         })),
 
+      // アイテム個別の寸法オーバーライド (#15)
+      updateItemDims: (id, dimsOverride) =>
+        get().updateCurrent((l) => ({
+          items: l.items.map((it) => (it.id === id ? { ...it, dimsOverride } : it)),
+        })),
+
+      clearItemDims: (id) =>
+        get().updateCurrent((l) => ({
+          items: l.items.map((it) => {
+            if (it.id !== id) return it
+            const { dimsOverride: _drop, ...rest } = it
+            return rest
+          }),
+        })),
+
       rotateSelected90: () => {
         const { selectedId } = get()
         if (!selectedId) return

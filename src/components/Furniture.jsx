@@ -79,10 +79,12 @@ export default function Furniture({
   onPointerDown,
   onPlacingHover,
   highlight = false,
+  sizeOverride = null,
 }) {
   const def = FURNITURE_TYPES[type]
   if (!def) return null
-  const { size, color } = def
+  const size = sizeOverride ?? def.size
+  const { color } = def
   const renderColor = highlight ? '#3b82f6' : color
 
   let Inner

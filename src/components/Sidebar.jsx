@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useBoothStore, PRESETS } from '../stores/useBoothStore'
 import { FURNITURE_TYPES } from '../data/furniture'
 import { PRINT_SIZES, widthFromPrint } from '../data/printSizes'
+import SelectedItemEditor from './SelectedItemEditor'
 
 export default function Sidebar({ onCloseRequest }) {
   const layout = useBoothStore((s) => s.getCurrent())
@@ -90,6 +91,7 @@ export default function Sidebar({ onCloseRequest }) {
 
   return (
     <aside className="sidebar">
+      <SelectedItemEditor />
       <section>
         <h2>レイアウト</h2>
         <div className="layout-row">
