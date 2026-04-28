@@ -24,11 +24,18 @@ export default function PlacedImage({ image }) {
 
   useEffect(() => {
     let cancel = false
+    let loaded = null
     loadTex(image.src).then((t) => {
-      if (!cancel) setTex(t)
+      if (cancel) {
+        t.dispose?.()
+        return
+      }
+      loaded = t
+      setTex(t)
     })
     return () => {
       cancel = true
+      if (loaded) loaded.dispose?.()
     }
   }, [image.src])
 
@@ -86,6 +93,9 @@ export default function PlacedImage({ image }) {
     setDragging(false)
   }
 
+  // テクスチャ読み込み前は何も描画しない（白い面が一瞬出るのを防ぐ）
+  if (!tex) return null
+
   return (
     <group
       position={renderPos}
@@ -95,9 +105,14 @@ export default function PlacedImage({ image }) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <mesh>
+      <mesh key={image.src}>
         <planeGeometry args={[w, h]} />
-        <meshBasicMaterial map={tex} side={THREE.DoubleSide} toneMapped={false} />
+        <meshBasicMaterial
+          map={tex}
+          side={THREE.DoubleSide}
+          toneMapped={false}
+          transparent
+        />
       </mesh>
       {isSelected && (
         <lineSegments>
