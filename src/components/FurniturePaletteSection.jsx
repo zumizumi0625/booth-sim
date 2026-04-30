@@ -81,44 +81,93 @@ export default function FurniturePaletteSection({ onCloseRequest }) {
               </button>
               {active && (
                 <div className="palette-sliders">
-                  {[
-                    ['W', 'w'],
-                    ['D', 'd'],
-                    ['H', 'h'],
-                  ].map(([label, axis]) => {
-                    const [min, max, step] = ranges[axis]
-                    return (
-                      <div key={axis} className="custom-row">
-                        <span className="custom-label">{label}</span>
-                        <input
-                          type="range"
-                          min={min}
-                          max={max}
-                          step={step}
-                          value={dims[axis]}
-                          onChange={(e) =>
-                            updateDim(key, axis, Number(e.target.value))
-                          }
-                          className="custom-slider"
-                          // 丸机の D は同期するので非表示
-                          disabled={key === 'roundDesk' && axis === 'd'}
-                        />
-                        <input
-                          type="number"
-                          min={min}
-                          max={max}
-                          step={step}
-                          value={dims[axis]}
-                          onChange={(e) =>
-                            updateDim(key, axis, Number(e.target.value))
-                          }
-                          className="custom-number"
-                          disabled={key === 'roundDesk' && axis === 'd'}
-                        />
-                        <span className="custom-unit">m</span>
-                      </div>
-                    )
-                  })}
+                  {key === 'roundDesk' ? (
+                    // 丸机は 半径 r + 高さ h で操作したほうが直感的
+                    [
+                      ['半径 r', 'radius'],
+                      ['H', 'h'],
+                    ].map(([label, axis]) => {
+                      // radius のレンジは w レンジの半分
+                      const [wMin, wMax, wStep] = ranges.w
+                      const [hMin, hMax, hStep] = ranges.h
+                      const [min, max, step] =
+                        axis === 'radius'
+                          ? [wMin / 2, wMax / 2, wStep / 2]
+                          : [hMin, hMax, hStep]
+                      const value = axis === 'radius' ? dims.w / 2 : dims.h
+                      const onChange = (v) => {
+                        if (axis === 'radius') {
+                          // w = d = 2r で同期
+                          setDimsByType((prev) => ({
+                            ...prev,
+                            [key]: { ...prev[key], w: v * 2, d: v * 2 },
+                          }))
+                        } else {
+                          updateDim(key, 'h', v)
+                        }
+                      }
+                      return (
+                        <div key={axis} className="custom-row">
+                          <span className="custom-label">{label}</span>
+                          <input
+                            type="range"
+                            min={min}
+                            max={max}
+                            step={step}
+                            value={value}
+                            onChange={(e) => onChange(Number(e.target.value))}
+                            className="custom-slider"
+                          />
+                          <input
+                            type="number"
+                            min={min}
+                            max={max}
+                            step={step}
+                            value={value}
+                            onChange={(e) => onChange(Number(e.target.value))}
+                            className="custom-number"
+                          />
+                          <span className="custom-unit">m</span>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    [
+                      ['W', 'w'],
+                      ['D', 'd'],
+                      ['H', 'h'],
+                    ].map(([label, axis]) => {
+                      const [min, max, step] = ranges[axis]
+                      return (
+                        <div key={axis} className="custom-row">
+                          <span className="custom-label">{label}</span>
+                          <input
+                            type="range"
+                            min={min}
+                            max={max}
+                            step={step}
+                            value={dims[axis]}
+                            onChange={(e) =>
+                              updateDim(key, axis, Number(e.target.value))
+                            }
+                            className="custom-slider"
+                          />
+                          <input
+                            type="number"
+                            min={min}
+                            max={max}
+                            step={step}
+                            value={dims[axis]}
+                            onChange={(e) =>
+                              updateDim(key, axis, Number(e.target.value))
+                            }
+                            className="custom-number"
+                          />
+                          <span className="custom-unit">m</span>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
               )}
             </div>

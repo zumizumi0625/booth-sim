@@ -12,6 +12,7 @@ export default function Sidebar({ onCloseRequest }) {
   const setPresetKey = useBoothStore((s) => s.setPresetKey)
   const setCustomSize = useBoothStore((s) => s.setCustomSize)
   const toggleWall = useBoothStore((s) => s.toggleWall)
+  const toggleHeaderSign = useBoothStore((s) => s.toggleHeaderSign)
   const setFloorColor = useBoothStore((s) => s.setFloorColor)
   const enterPlacing = useBoothStore((s) => s.enterPlacing)
   const cancelPlacing = useBoothStore((s) => s.cancelPlacing)
@@ -265,7 +266,7 @@ export default function Sidebar({ onCloseRequest }) {
       </section>
 
       <section>
-        <h2>壁</h2>
+        <h2>壁・看板</h2>
         <div className="wall-list">
           {[
             ['back', '背面'],
@@ -282,6 +283,14 @@ export default function Sidebar({ onCloseRequest }) {
               {l}
             </label>
           ))}
+          <label className="preset-row">
+            <input
+              type="checkbox"
+              checked={layout.headerSign ?? true}
+              onChange={toggleHeaderSign}
+            />
+            正面看板（門・h=600mm）
+          </label>
         </div>
       </section>
 

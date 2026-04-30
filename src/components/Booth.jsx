@@ -2,6 +2,8 @@ import { useBoothStore, snap } from '../stores/useBoothStore'
 
 const WALL_THICKNESS = 0.05
 const WALL_COLOR = '#ffffff'
+const HEADER_SIGN_HEIGHT = 0.6 // 600mm 固定（業界標準）
+const HEADER_SIGN_COLOR = '#1f2a44' // ダーク系（画像背景の宇宙感に合う標準色）
 
 function FloorSurface({ size, color, onPlacingHover, onPlacingClick, onBackgroundClick }) {
   const { w, d } = size
@@ -29,6 +31,25 @@ function Wall({ which, position, args, onPlacingHover, onPlacingClick }) {
     >
       <boxGeometry args={args} />
       <meshStandardMaterial color={WALL_COLOR} />
+    </mesh>
+  )
+}
+
+function HeaderSign({ size, onPlacingHover, onPlacingClick }) {
+  const { w, d, h } = size
+  // 正面（z = +d/2）にブース幅一杯、天井から下 600mm の帯
+  // 正面の壁とのZ-fight回避のためわずかに外側へ
+  // image 配置時は wall:front 扱い（既存の壁画像配置パイプラインを流用）
+  return (
+    <mesh
+      position={[0, h - HEADER_SIGN_HEIGHT / 2, d / 2 + WALL_THICKNESS]}
+      receiveShadow
+      castShadow
+      onPointerMove={(e) => onPlacingHover?.('wall:front', e)}
+      onClick={(e) => onPlacingClick?.('wall:front', e)}
+    >
+      <boxGeometry args={[w, HEADER_SIGN_HEIGHT, WALL_THICKNESS]} />
+      <meshStandardMaterial color={HEADER_SIGN_COLOR} />
     </mesh>
   )
 }
@@ -80,6 +101,13 @@ export default function Booth({ onPlacingHover, onPlacingClick, onBackgroundClic
           which="right"
           position={[w / 2, h / 2, 0]}
           args={[WALL_THICKNESS, h, d]}
+          onPlacingHover={onPlacingHover}
+          onPlacingClick={onPlacingClick}
+        />
+      )}
+      {(layout.headerSign ?? true) && (
+        <HeaderSign
+          size={size}
           onPlacingHover={onPlacingHover}
           onPlacingClick={onPlacingClick}
         />
