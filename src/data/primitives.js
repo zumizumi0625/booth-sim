@@ -22,7 +22,7 @@ export const PRIMITIVES = {
   personFemale: {
     label: '人物（女性 155cm）',
     defaultParams: { height: 1.55 },
-    color: '#a5b4fc',
+    color: '#f9a8d4',
     shape: 'person',
   },
   rollupBanner: {
