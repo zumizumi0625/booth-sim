@@ -21,6 +21,25 @@ function FloorSurface({ size, color, onPlacingHover, onPlacingClick, onBackgroun
   )
 }
 
+/**
+ * ブース外周の地面: ブース外にもアイテムを置けるように、より広い raycast 用 plane.
+ * 透明だが raycast 対象なので、ロールアップバナー等を booth 外側に置ける。
+ * y = -0.005 で booth floor の下に置き、booth 内ではブース floor が優先的にヒットする。
+ */
+function OuterGround({ onPlacingHover, onPlacingClick, onBackgroundClick }) {
+  return (
+    <mesh
+      position={[0, -0.005, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      onPointerMove={(e) => onPlacingHover?.('floor', e)}
+      onClick={(e) => onPlacingClick?.('floor', e, () => onBackgroundClick?.())}
+    >
+      <planeGeometry args={[40, 40]} />
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>
+  )
+}
+
 function Wall({ which, position, args, onPlacingHover, onPlacingClick }) {
   return (
     <mesh
@@ -62,6 +81,11 @@ export default function Booth({ onPlacingHover, onPlacingClick, onBackgroundClic
 
   return (
     <group>
+      <OuterGround
+        onPlacingHover={onPlacingHover}
+        onPlacingClick={onPlacingClick}
+        onBackgroundClick={onBackgroundClick}
+      />
       <FloorSurface
         size={size}
         color={layout.floorColor}
@@ -116,11 +140,12 @@ export default function Booth({ onPlacingHover, onPlacingClick, onBackgroundClic
   )
 }
 
-export function clampToBooth(x, z, size) {
-  const { w, d } = size
-  const margin = 0.1
+// ブース外側にもアイテムを置けるよう、外周バウンドは 40m 四方相当に緩和
+const OUTER_HALF = 19.5
+
+export function clampToBooth(x, z, _size) {
   return [
-    Math.max(-w / 2 + margin, Math.min(w / 2 - margin, snap(x))),
-    Math.max(-d / 2 + margin, Math.min(d / 2 - margin, snap(z))),
+    Math.max(-OUTER_HALF, Math.min(OUTER_HALF, snap(x))),
+    Math.max(-OUTER_HALF, Math.min(OUTER_HALF, snap(z))),
   ]
 }
