@@ -5,6 +5,8 @@ import ViewButtons from './components/ViewButtons'
 import CaptureButton from './components/CaptureButton'
 import KeyboardHandler from './components/KeyboardHandler'
 import ModeToggle from './components/ModeToggle'
+import ToneToggle from './components/ToneToggle'
+import MeasureToggle from './components/MeasureToggle'
 import './App.css'
 
 function useIsMobile() {
@@ -41,6 +43,8 @@ export default function App() {
         {!isMobile && <span className="app-subtitle">3D Booth Simulator</span>}
         <div className="header-actions">
           <ModeToggle />
+          <MeasureToggle />
+          <ToneToggle />
           <CaptureButton captureRef={captureRef} />
         </div>
       </header>

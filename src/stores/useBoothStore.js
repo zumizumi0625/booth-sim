@@ -37,6 +37,12 @@ export const useBoothStore = create(
       selectedId: null,
       cameraMode: 'edit',
       draggingId: null,
+      // Visual tone: 'mock' (建築モック / 白) | 'dark' | 'kawaii' (明るい)
+      visualTone: 'mock',
+      // Measure tool 状態
+      measureActive: false,
+      measureStart: null, // [x,y,z] | null
+      measureEnd: null,
 
       getCurrent: () => {
         const { layouts, currentLayoutId } = get()
@@ -66,6 +72,18 @@ export const useBoothStore = create(
         get().updateCurrent((l) => ({ walls: { ...l.walls, [which]: !l.walls[which] } })),
 
       setFloorColor: (color) => get().updateCurrent(() => ({ floorColor: color })),
+
+      setVisualTone: (visualTone) => set({ visualTone }),
+
+      // Measure tool
+      toggleMeasure: () =>
+        set((s) => ({ measureActive: !s.measureActive, measureStart: null, measureEnd: null })),
+      setMeasurePoint: (point) => {
+        const { measureStart } = get()
+        if (!measureStart) set({ measureStart: point })
+        else set({ measureEnd: point })
+      },
+      clearMeasure: () => set({ measureStart: null, measureEnd: null }),
 
       enterPlacing: (kind, type, payload = null) =>
         set({
