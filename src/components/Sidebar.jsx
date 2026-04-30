@@ -4,6 +4,7 @@ import { FURNITURE_TYPES } from '../data/furniture'
 import { PRINT_SIZES, widthFromPrint } from '../data/printSizes'
 import SelectedItemEditor from './SelectedItemEditor'
 import PrimitiveSection from './PrimitiveSection'
+import FurniturePaletteSection from './FurniturePaletteSection'
 
 export default function Sidebar({ onCloseRequest }) {
   const layout = useBoothStore((s) => s.getCurrent())
@@ -11,6 +12,7 @@ export default function Sidebar({ onCloseRequest }) {
   const setPresetKey = useBoothStore((s) => s.setPresetKey)
   const setCustomSize = useBoothStore((s) => s.setCustomSize)
   const toggleWall = useBoothStore((s) => s.toggleWall)
+  const setFloorColor = useBoothStore((s) => s.setFloorColor)
   const enterPlacing = useBoothStore((s) => s.enterPlacing)
   const cancelPlacing = useBoothStore((s) => s.cancelPlacing)
   const mode = useBoothStore((s) => s.mode)
@@ -29,18 +31,31 @@ export default function Sidebar({ onCloseRequest }) {
   const [customH, setCustomH] = useState(layout.customSize?.h ?? 2.7)
   const [printKey, setPrintKey] = useState('default60')
   const [orientationMode, setOrientationMode] = useState('auto')
+  const [customShortMm, setCustomShortMm] = useState(600)
+  const [customLongMm, setCustomLongMm] = useState(900)
   const pendingImage = useBoothStore((s) => s.pendingImage)
   const setPendingImageWidth = useBoothStore((s) => s.setPendingImageWidth)
 
   // 印刷サイズ or 向きが変わったら、未配置の pendingImage の幅を更新
   useEffect(() => {
     if (pendingImage) {
-      const newWidth = widthFromPrint(printKey, pendingImage.naturalAspect, orientationMode)
+      const newWidth =
+        printKey === 'custom'
+          ? widthFromCustom(customShortMm, customLongMm, pendingImage.naturalAspect, orientationMode)
+          : widthFromPrint(printKey, pendingImage.naturalAspect, orientationMode)
       if (Math.abs(newWidth - pendingImage.widthMeters) > 0.001) {
         setPendingImageWidth(newWidth)
       }
     }
-  }, [printKey, orientationMode, pendingImage, setPendingImageWidth])
+  }, [printKey, orientationMode, customShortMm, customLongMm, pendingImage, setPendingImageWidth])
+
+  function widthFromCustom(shortMm, longMm, naturalAspect, mode) {
+    const s = (shortMm || 0) / 1000
+    const l = (longMm || 0) / 1000
+    if (mode === 'portrait') return s
+    if (mode === 'landscape') return l
+    return naturalAspect > 1 ? l : s
+  }
   const [renameValue, setRenameValue] = useState(layout.name)
   const fileRef = useRef(null)
 
@@ -58,7 +73,10 @@ export default function Sidebar({ onCloseRequest }) {
         i.src = dataUrl
       })
       const aspect = img.naturalWidth / img.naturalHeight
-      const widthMeters = widthFromPrint(printKey, aspect, orientationMode)
+      const widthMeters =
+        printKey === 'custom'
+          ? widthFromCustom(customShortMm, customLongMm, aspect, orientationMode)
+          : widthFromPrint(printKey, aspect, orientationMode)
       enterPlacing('image', null, { src: dataUrl, naturalAspect: aspect, widthMeters })
       onCloseRequest?.()
       // 1枚ずつ配置するので最初の1枚だけプレースキューに乗せる
@@ -216,6 +234,37 @@ export default function Sidebar({ onCloseRequest }) {
       </section>
 
       <section>
+        <h2>床の色</h2>
+        <div className="palette-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+          {[
+            ['#f3f3f3', 'グレー'],
+            ['#e8d9c0', 'ベージュ'],
+            ['#3a4a6b', 'ネイビー'],
+            ['#2b6cb0', 'ブルー'],
+            ['#1f1f1f', 'ブラック'],
+          ].map(([col, label]) => (
+            <button
+              key={col}
+              onClick={() => setFloorColor(col)}
+              title={label}
+              className="floor-color-swatch"
+              style={{
+                background: col,
+                outline:
+                  layout.floorColor === col ? '3px solid var(--color-active)' : 'none',
+              }}
+            />
+          ))}
+        </div>
+        <input
+          type="color"
+          value={layout.floorColor || '#f3f3f3'}
+          onChange={(e) => setFloorColor(e.target.value)}
+          style={{ marginTop: 6, width: '100%', height: 28 }}
+        />
+      </section>
+
+      <section>
         <h2>壁</h2>
         <div className="wall-list">
           {[
@@ -238,38 +287,15 @@ export default function Sidebar({ onCloseRequest }) {
 
       <PrimitiveSection onCloseRequest={onCloseRequest} />
 
-      <section>
-        <h2>家具を置く</h2>
-        <div className="palette-grid">
-          {Object.entries(FURNITURE_TYPES).map(([key, def]) => (
-            <button
-              key={key}
-              className={
-                'palette-btn' +
-                (mode === 'placing' && placingType === key ? ' active' : '')
-              }
-              onClick={() => {
-                if (mode === 'placing' && placingType === key) cancelPlacing()
-                else {
-                  enterPlacing('furniture', key)
-                  onCloseRequest?.()
-                }
-              }}
-            >
-              <span className="palette-label">{def.label}</span>
-              <span className="palette-dim">
-                {Math.round(def.size.w * 100)}×{Math.round(def.size.d * 100)}×
-                {Math.round(def.size.h * 100)}cm
-              </span>
-            </button>
-          ))}
-        </div>
-        {mode === 'placing' && (
+      <FurniturePaletteSection onCloseRequest={onCloseRequest} />
+
+      {mode === 'placing' && (
+        <section>
           <button className="cancel-place" onClick={cancelPlacing}>
             ✕ 配置キャンセル (Esc)
           </button>
-        )}
-      </section>
+        </section>
+      )}
 
       <section>
         <h2>画像を貼る</h2>
@@ -283,6 +309,54 @@ export default function Sidebar({ onCloseRequest }) {
             ))}
           </select>
         </label>
+        {printKey === 'custom' && (
+          <div className="custom-list" style={{ marginBottom: 8 }}>
+            <div className="custom-row">
+              <span className="custom-label">短辺</span>
+              <input
+                type="range"
+                min={50}
+                max={2000}
+                step={5}
+                value={customShortMm}
+                onChange={(e) => setCustomShortMm(Number(e.target.value))}
+                className="custom-slider"
+              />
+              <input
+                type="number"
+                min={50}
+                max={2000}
+                step={1}
+                value={customShortMm}
+                onChange={(e) => setCustomShortMm(Number(e.target.value))}
+                className="custom-number"
+              />
+              <span className="custom-unit">mm</span>
+            </div>
+            <div className="custom-row">
+              <span className="custom-label">長辺</span>
+              <input
+                type="range"
+                min={50}
+                max={2000}
+                step={5}
+                value={customLongMm}
+                onChange={(e) => setCustomLongMm(Number(e.target.value))}
+                className="custom-slider"
+              />
+              <input
+                type="number"
+                min={50}
+                max={2000}
+                step={1}
+                value={customLongMm}
+                onChange={(e) => setCustomLongMm(Number(e.target.value))}
+                className="custom-number"
+              />
+              <span className="custom-unit">mm</span>
+            </div>
+          </div>
+        )}
         <div className="orientation-row">
           <span className="orientation-label">向き</span>
           {[

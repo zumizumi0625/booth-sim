@@ -117,6 +117,13 @@ export default function Scene({ captureRef }) {
   }
 
   const onSurfaceClick = (surfaceId, e) => {
+    // Measure tool: 床/壁/家具上面いずれもクリック可
+    if (measureActive) {
+      e.stopPropagation()
+      setMeasurePoint([e.point.x, e.point.y, e.point.z])
+      return
+    }
+
     if (mode === 'placing') {
       e.stopPropagation()
       if (placingKind === 'furniture' || placingKind === 'primitive') {
@@ -154,12 +161,24 @@ export default function Scene({ captureRef }) {
   const cameraPos = fitCamera(size)
   const selectedItem = layout.items.find((i) => i.id === selectedId)
   const selectedImage = layout.images.find((i) => i.id === selectedId)
+  const visualTone = useBoothStore((s) => s.visualTone)
+  const measureActive = useBoothStore((s) => s.measureActive)
+  const measureStart = useBoothStore((s) => s.measureStart)
+  const measureEnd = useBoothStore((s) => s.measureEnd)
+  const setMeasurePoint = useBoothStore((s) => s.setMeasurePoint)
+
+  // Tone preset: 背景色 と light intensities
+  const toneCfg = {
+    mock: { bg: '#e9ecef', ambient: 0.65, directional: 0.9, hemi: 0.4 },
+    dark: { bg: '#0f172a', ambient: 0.25, directional: 0.6, hemi: 0.15 },
+    kawaii: { bg: '#fef9e7', ambient: 0.85, directional: 1.1, hemi: 0.5 },
+  }[visualTone] ?? { bg: '#e9ecef', ambient: 0.65, directional: 0.9, hemi: 0.4 }
 
   return (
     <Canvas
       shadows
       camera={{ position: cameraPos, fov: 45 }}
-      style={{ background: '#e9ecef' }}
+      style={{ background: toneCfg.bg }}
       onPointerMissed={onCanvasMissed}
       onContextMenu={onCanvasContextMenu}
       gl={{ preserveDrawingBuffer: true, antialias: true }}
@@ -167,14 +186,14 @@ export default function Scene({ captureRef }) {
         if (captureRef) captureRef.current = { gl, scene, camera, controlsRef }
       }}
     >
-      <ambientLight intensity={0.65} />
+      <ambientLight intensity={toneCfg.ambient} />
       <directionalLight
         position={[5, 8, 5]}
-        intensity={0.9}
+        intensity={toneCfg.directional}
         castShadow
         shadow-mapSize={[2048, 2048]}
       />
-      <hemisphereLight args={['#ffffff', '#cccccc', 0.4]} />
+      <hemisphereLight args={['#ffffff', '#cccccc', toneCfg.hemi]} />
 
       <Grid
         args={[40, 40]}
@@ -234,6 +253,16 @@ export default function Scene({ captureRef }) {
         />
       )}
 
+      {measureActive && measureStart && (
+        <MeasureMarker position={measureStart} color="#3b82f6" />
+      )}
+      {measureActive && measureEnd && (
+        <MeasureMarker position={measureEnd} color="#3b82f6" />
+      )}
+      {measureActive && measureStart && measureEnd && (
+        <MeasureSegment a={measureStart} b={measureEnd} />
+      )}
+
       <CameraSetter viewKey={viewName} size={size} controlsRef={controlsRef} />
 
       <OrbitControls
@@ -287,6 +316,43 @@ function FurnitureTopHitArea({ position, rotationY, size, onSurfaceHover, onSurf
       <planeGeometry args={[size.w, size.d]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
+  )
+}
+
+function MeasureMarker({ position, color }) {
+  return (
+    <mesh position={position}>
+      <sphereGeometry args={[0.04, 12, 8]} />
+      <meshBasicMaterial color={color} />
+    </mesh>
+  )
+}
+
+function MeasureSegment({ a, b }) {
+  const points = [
+    new THREE.Vector3(...a),
+    new THREE.Vector3(...b),
+  ]
+  const dist = points[0].distanceTo(points[1])
+  const mid = points[0].clone().add(points[1]).multiplyScalar(0.5)
+  return (
+    <>
+      <line>
+        <bufferGeometry attach="geometry">
+          <bufferAttribute
+            attach="attributes-position"
+            count={2}
+            array={new Float32Array([...a, ...b])}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#3b82f6" linewidth={2} />
+      </line>
+      <DimensionLabel
+        position={[mid.x, mid.y + 0.15, mid.z]}
+        text={`${(dist * 100).toFixed(1)} cm`}
+      />
+    </>
   )
 }
 
