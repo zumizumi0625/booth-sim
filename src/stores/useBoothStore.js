@@ -17,6 +17,7 @@ const blankLayout = (id, name) => ({
   presetKey: 'medium',
   customSize: null,
   walls: { back: true, left: true, right: true, front: false },
+  headerSign: true, // 正面の門型看板（高さ600mm固定、全企業共通）
   floorColor: '#f3f3f3',
   items: [],
   images: [],
@@ -70,6 +71,9 @@ export const useBoothStore = create(
 
       toggleWall: (which) =>
         get().updateCurrent((l) => ({ walls: { ...l.walls, [which]: !l.walls[which] } })),
+
+      toggleHeaderSign: () =>
+        get().updateCurrent((l) => ({ headerSign: !(l.headerSign ?? true) })),
 
       setFloorColor: (color) => get().updateCurrent(() => ({ floorColor: color })),
 
