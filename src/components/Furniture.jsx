@@ -12,6 +12,72 @@ function PrimitiveBox({ params, color, opacity = 1 }) {
   )
 }
 
+function Person({ params, color, opacity = 1 }) {
+  // 人体プロポーション: 頭=身長/8, 胴=3/8, 脚=4/8
+  const h = params.height ?? 1.7
+  const headR = h * 0.06
+  const torsoH = h * 0.4
+  const legH = h * 0.45
+  const torsoY = legH + torsoH / 2
+  const headY = legH + torsoH + headR
+  const torsoW = h * 0.18
+  const torsoD = h * 0.10
+  const legW = h * 0.07
+  const transparent = opacity < 1
+  return (
+    <group>
+      {/* 頭 */}
+      <mesh position={[0, headY, 0]} castShadow>
+        <sphereGeometry args={[headR, 16, 12]} />
+        <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+      </mesh>
+      {/* 胴 */}
+      <mesh position={[0, torsoY, 0]} castShadow>
+        <boxGeometry args={[torsoW, torsoH, torsoD]} />
+        <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+      </mesh>
+      {/* 脚 (2本) */}
+      <mesh position={[-legW * 0.6, legH / 2, 0]} castShadow>
+        <boxGeometry args={[legW, legH, legW]} />
+        <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+      </mesh>
+      <mesh position={[legW * 0.6, legH / 2, 0]} castShadow>
+        <boxGeometry args={[legW, legH, legW]} />
+        <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+      </mesh>
+    </group>
+  )
+}
+
+function RollupBanner({ params, color, opacity = 1 }) {
+  const w = params.w ?? 0.85
+  const h = params.h ?? 2.0
+  const hasStand = params.hasStand ?? true
+  const transparent = opacity < 1
+  return (
+    <group>
+      {/* バナー本体（薄い縦長平面） */}
+      <mesh position={[0, h / 2 + (hasStand ? 0.04 : 0), 0]} castShadow>
+        <boxGeometry args={[w, h, 0.02]} />
+        <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+      </mesh>
+      {/* X 字台座 */}
+      {hasStand && (
+        <>
+          <mesh position={[0, 0.02, 0]} castShadow>
+            <boxGeometry args={[w * 0.7, 0.04, 0.05]} />
+            <meshStandardMaterial color="#888" transparent={transparent} opacity={opacity} />
+          </mesh>
+          <mesh position={[0, 0.02, 0]} rotation={[0, Math.PI / 2, 0]} castShadow>
+            <boxGeometry args={[w * 0.5, 0.04, 0.05]} />
+            <meshStandardMaterial color="#888" transparent={transparent} opacity={opacity} />
+          </mesh>
+        </>
+      )}
+    </group>
+  )
+}
+
 function Cylinder({ params, color, opacity = 1 }) {
   const { radius, length, axis = 'y' } = params
   const transparent = opacity < 1
@@ -36,6 +102,13 @@ export function getPrimitiveBBox(type, params) {
   }
   if (type === 'box') {
     return { w: params.w, d: params.d, h: params.h }
+  }
+  if (type === 'personMale' || type === 'personFemale') {
+    const h = params.height ?? 1.7
+    return { w: h * 0.18, d: h * 0.18, h }
+  }
+  if (type === 'rollupBanner') {
+    return { w: params.w ?? 0.85, d: 0.5, h: (params.h ?? 2.0) + 0.04 }
   }
   return { w: 0.5, d: 0.5, h: 0.5 }
 }
@@ -111,6 +184,32 @@ function FlatPanel({ size, color, opacity = 1 }) {
   )
 }
 
+function RoundDesk({ size, color, opacity = 1 }) {
+  const { w, h } = size
+  const radius = w / 2
+  const topThickness = 0.04
+  const transparent = opacity < 1
+  return (
+    <group>
+      {/* 天板 */}
+      <mesh position={[0, h - topThickness / 2, 0]} castShadow>
+        <cylinderGeometry args={[radius, radius, topThickness, 32]} />
+        <meshStandardMaterial color={color} transparent={transparent} opacity={opacity} />
+      </mesh>
+      {/* 中央脚 */}
+      <mesh position={[0, (h - topThickness) / 2, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, h - topThickness, 16]} />
+        <meshStandardMaterial color="#666" transparent={transparent} opacity={opacity} />
+      </mesh>
+      {/* ベース */}
+      <mesh position={[0, 0.02, 0]} castShadow>
+        <cylinderGeometry args={[radius * 0.45, radius * 0.45, 0.04, 24]} />
+        <meshStandardMaterial color="#666" transparent={transparent} opacity={opacity} />
+      </mesh>
+    </group>
+  )
+}
+
 export default function Furniture({
   type,
   position = [0, 0, 0],
@@ -122,12 +221,28 @@ export default function Furniture({
   sizeOverride = null,
   params = null,
 }) {
-  // プリミティブ（円柱・直方体）
+  // プリミティブ（円柱・直方体・人物・ロールアップバナー）
   if (PRIMITIVES[type]) {
     const def = PRIMITIVES[type]
     const renderColor = highlight ? '#3b82f6' : def.color
     const effectiveParams = params ?? def.defaultParams
-    const PrimitiveComp = type === 'cylinder' ? Cylinder : PrimitiveBox
+    let PrimitiveComp
+    switch (def.shape ?? type) {
+      case 'cylinder':
+        PrimitiveComp = Cylinder
+        break
+      case 'box':
+        PrimitiveComp = PrimitiveBox
+        break
+      case 'person':
+        PrimitiveComp = Person
+        break
+      case 'rollupBanner':
+        PrimitiveComp = RollupBanner
+        break
+      default:
+        PrimitiveComp = PrimitiveBox
+    }
     return (
       <group
         position={position}
@@ -146,20 +261,36 @@ export default function Furniture({
   const renderColor = highlight ? '#3b82f6' : color
 
   let Inner
-  switch (type) {
+  switch (def.shape ?? type) {
     case 'desk':
-    case 'longDesk':
       Inner = Desk
+      break
+    case 'roundDesk':
+      Inner = RoundDesk
       break
     case 'chair':
       Inner = Chair
       break
-    case 'partition':
-    case 'signStand':
+    case 'panel':
       Inner = FlatPanel
       break
     default:
-      return null
+      // shape 未指定時は type ベース（後方互換）
+      switch (type) {
+        case 'desk':
+        case 'longDesk':
+          Inner = Desk
+          break
+        case 'chair':
+          Inner = Chair
+          break
+        case 'partition':
+        case 'signStand':
+          Inner = FlatPanel
+          break
+        default:
+          return null
+      }
   }
 
   return (

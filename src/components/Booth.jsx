@@ -1,10 +1,9 @@
 import { useBoothStore, snap } from '../stores/useBoothStore'
 
 const WALL_THICKNESS = 0.05
-const FLOOR_COLOR = '#f3f3f3'
 const WALL_COLOR = '#ffffff'
 
-function FloorSurface({ size, onPlacingHover, onPlacingClick, onBackgroundClick }) {
+function FloorSurface({ size, color, onPlacingHover, onPlacingClick, onBackgroundClick }) {
   const { w, d } = size
   return (
     <mesh
@@ -15,7 +14,7 @@ function FloorSurface({ size, onPlacingHover, onPlacingClick, onBackgroundClick 
       onClick={(e) => onPlacingClick?.('floor', e, () => onBackgroundClick?.())}
     >
       <planeGeometry args={[w, d]} />
-      <meshStandardMaterial color={FLOOR_COLOR} />
+      <meshStandardMaterial color={color || '#f3f3f3'} />
     </mesh>
   )
 }
@@ -44,6 +43,7 @@ export default function Booth({ onPlacingHover, onPlacingClick, onBackgroundClic
     <group>
       <FloorSurface
         size={size}
+        color={layout.floorColor}
         onPlacingHover={onPlacingHover}
         onPlacingClick={onPlacingClick}
         onBackgroundClick={onBackgroundClick}

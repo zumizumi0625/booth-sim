@@ -17,6 +17,7 @@ const blankLayout = (id, name) => ({
   presetKey: 'medium',
   customSize: null,
   walls: { back: true, left: true, right: true, front: false },
+  floorColor: '#f3f3f3',
   items: [],
   images: [],
 })
@@ -64,6 +65,8 @@ export const useBoothStore = create(
       toggleWall: (which) =>
         get().updateCurrent((l) => ({ walls: { ...l.walls, [which]: !l.walls[which] } })),
 
+      setFloorColor: (color) => get().updateCurrent(() => ({ floorColor: color })),
+
       enterPlacing: (kind, type, payload = null) =>
         set({
           mode: 'placing',
@@ -77,6 +80,10 @@ export const useBoothStore = create(
       pendingPrimitiveParams: null,
       setPendingPrimitiveParams: (params) => set({ pendingPrimitiveParams: params }),
 
+      // 家具配置時の事前寸法 override（slider 連動でプレビューが更新される）
+      pendingDimsOverride: null,
+      setPendingDimsOverride: (dims) => set({ pendingDimsOverride: dims }),
+
       cancelPlacing: () =>
         set({
           mode: 'idle',
@@ -84,6 +91,7 @@ export const useBoothStore = create(
           placingType: null,
           pendingImage: null,
           pendingPrimitiveParams: null,
+          pendingDimsOverride: null,
         }),
 
       setCameraMode: (cameraMode) => set({ cameraMode }),
@@ -96,18 +104,23 @@ export const useBoothStore = create(
       },
 
       placeFurniture: (position, rotationY = 0) => {
-        const { placingType, placingKind, pendingPrimitiveParams } = get()
+        const { placingType, placingKind, pendingPrimitiveParams, pendingDimsOverride } =
+          get()
         if (!placingType) return
         const id = newId()
         const params = placingKind === 'primitive' ? pendingPrimitiveParams : null
         const item = { id, type: placingType, position, rotationY }
         if (params) item.params = params
+        if (placingKind === 'furniture' && pendingDimsOverride) {
+          item.dimsOverride = pendingDimsOverride
+        }
         get().updateCurrent((l) => ({ items: [...l.items, item] }))
         set({
           mode: 'idle',
           placingType: null,
           placingKind: null,
           pendingPrimitiveParams: null,
+          pendingDimsOverride: null,
           selectedId: id,
         })
       },

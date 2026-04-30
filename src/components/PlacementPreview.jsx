@@ -18,9 +18,17 @@ export function FurniturePreview({ point }) {
   const placingType = useBoothStore((s) => s.placingType)
   const placingKind = useBoothStore((s) => s.placingKind)
   const pendingPrimitiveParams = useBoothStore((s) => s.pendingPrimitiveParams)
+  const pendingDimsOverride = useBoothStore((s) => s.pendingDimsOverride)
   if (!point || !placingType) return null
   if (placingKind === 'furniture') {
-    return <Furniture type={placingType} position={point} opacity={0.45} />
+    return (
+      <Furniture
+        type={placingType}
+        position={point}
+        opacity={0.45}
+        sizeOverride={pendingDimsOverride}
+      />
+    )
   }
   if (placingKind === 'primitive') {
     return (
