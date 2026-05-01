@@ -3,13 +3,14 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Grid } from '@react-three/drei'
 import * as THREE from 'three'
 import Booth from './Booth'
-import Furniture from './Furniture'
+import Furniture, { getPrimitiveBBox } from './Furniture'
 import PlacedFurniture from './PlacedFurniture'
 import PlacedImage from './PlacedImage'
 import { FurniturePreview, ImagePreview } from './PlacementPreview'
 import DimensionLabel from './DimensionLabel'
 import { useBoothStore, snap } from '../stores/useBoothStore'
 import { FURNITURE_TYPES } from '../data/furniture'
+import { PRIMITIVES } from '../data/primitives'
 
 function fitCamera(size) {
   const { w, d, h } = size
@@ -282,17 +283,19 @@ export default function Scene({ captureRef }) {
 // 家具コンポーネントの上面も raycast 対象にしたいので、wrapper を用意
 function PlacedFurnitureWithRaycast({ item, onSurfaceHover, onSurfaceClick }) {
   const def = FURNITURE_TYPES[item.type]
-  const effectiveSize = item.dimsOverride ?? def?.size
+  // 家具なら dimsOverride or def.size、プリミティブなら bbox を計算
+  const isPrimitive = !!PRIMITIVES[item.type]
+  const effectiveSize = isPrimitive
+    ? getPrimitiveBBox(item.type, item.params ?? PRIMITIVES[item.type].defaultParams)
+    : item.dimsOverride ?? def?.size
+  // 天板の y 座標 (アイテムの y + 高さ)
+  const topY = (item.position[1] ?? 0) + (effectiveSize?.h ?? 0) + 0.001
   return (
     <group>
       <PlacedFurniture item={item} />
-      {/* 家具上面を image 配置のターゲットに */}
+      {/* 家具/プリミティブ上面を image または primitive 配置のターゲットに */}
       <FurnitureTopHitArea
-        position={[
-          item.position[0],
-          (effectiveSize?.h ?? 0) + 0.001,
-          item.position[2],
-        ]}
+        position={[item.position[0], topY, item.position[2]]}
         rotationY={item.rotationY ?? 0}
         size={effectiveSize}
         onSurfaceHover={onSurfaceHover}
