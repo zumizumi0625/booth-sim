@@ -7,7 +7,7 @@ import { PRIMITIVES } from '../data/primitives'
 import Furniture, { getPrimitiveBBox } from './Furniture'
 import { clampToBooth } from './Booth'
 
-const FLOOR_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
+// drag 用の平面はアイテムの現在 y で構築する（机上に置いたものを動かしても床に落ちないように）
 
 export default function PlacedFurniture({ item }) {
   const meshRef = useRef()
@@ -45,9 +45,12 @@ export default function PlacedFurniture({ item }) {
     if (!dragging) return
     e.stopPropagation()
     const target = new THREE.Vector3()
-    if (!e.ray.intersectPlane(FLOOR_PLANE, target)) return
+    // アイテムの現在 y で水平面を作る（机上の物が床に落ちない）
+    const planeY = item.position[1] ?? 0
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -planeY)
+    if (!e.ray.intersectPlane(dragPlane, target)) return
     const [sx, sz] = clampToBooth(target.x, target.z, size)
-    moveItem(item.id, [sx, 0, sz])
+    moveItem(item.id, [sx, planeY, sz])
   }
 
   const onPointerUp = (e) => {
