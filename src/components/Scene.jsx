@@ -313,8 +313,15 @@ function FurnitureTopHitArea({ position, rotationY, size, onSurfaceHover, onSurf
     <mesh
       position={position}
       rotation={[-Math.PI / 2, 0, rotationY]}
-      onPointerMove={(e) => onSurfaceHover('furnitureTop', e)}
-      onClick={(e) => onSurfaceClick('furnitureTop', e)}
+      onPointerMove={(e) => {
+        // 下の floor handler が hover y を 0 に上書きしないよう、closer hit がイベントを握る
+        e.stopPropagation()
+        onSurfaceHover('furnitureTop', e)
+      }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onSurfaceClick('furnitureTop', e)
+      }}
     >
       <planeGeometry args={[size.w, size.d]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
