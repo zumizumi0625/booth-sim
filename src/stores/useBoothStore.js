@@ -200,15 +200,16 @@ export const useBoothStore = create(
           }),
         })),
 
-      rotateSelected90: () => {
+      rotateSelected45: () => {
         const { selectedId } = get()
         if (!selectedId) return
+        const STEP = Math.PI / 4 // 45°
         get().updateCurrent((l) => ({
           items: l.items.map((it) =>
-            it.id === selectedId ? { ...it, rotationY: (it.rotationY ?? 0) + Math.PI / 2 } : it,
+            it.id === selectedId ? { ...it, rotationY: (it.rotationY ?? 0) + STEP } : it,
           ),
           images: l.images.map((im) =>
-            im.id === selectedId ? { ...im, rotationOnSurface: ((im.rotationOnSurface ?? 0) + Math.PI / 2) } : im,
+            im.id === selectedId ? { ...im, rotationOnSurface: ((im.rotationOnSurface ?? 0) + STEP) } : im,
           ),
         }))
       },
