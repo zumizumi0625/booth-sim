@@ -420,7 +420,7 @@ export default function Sidebar({ onCloseRequest }) {
         </ul>
         <p style={{ marginTop: 8 }}>共通:</p>
         <ul>
-          <li><b>R</b> 90°回転 / <b>Delete</b> 削除 / <b>Esc</b> 解除</li>
+          <li><b>R</b> 45°回転 / <b>Delete</b> 削除 / <b>Esc</b> 解除</li>
           <li><b>矢印キー</b>: 25cm 微調整（壁画像は壁面に沿って移動）</li>
         </ul>
       </section>

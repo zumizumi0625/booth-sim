@@ -21,7 +21,7 @@ function tangentBasis(normal) {
 }
 
 export default function KeyboardHandler() {
-  const rotate = useBoothStore((s) => s.rotateSelected90)
+  const rotate = useBoothStore((s) => s.rotateSelected45)
   const remove = useBoothStore((s) => s.deleteSelected)
   const deselect = useBoothStore((s) => s.deselect)
   const cancelPlacing = useBoothStore((s) => s.cancelPlacing)
