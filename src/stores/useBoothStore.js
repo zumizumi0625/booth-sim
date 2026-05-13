@@ -18,6 +18,10 @@ const blankLayout = (id, name) => ({
   customSize: null,
   walls: { back: true, left: true, right: true, front: false },
   headerSign: true, // 正面の門型看板（高さ600mm固定、全企業共通）
+  // 正面看板の文字（社名・キャッチ・等）。空文字なら無地。
+  headerSignText: '',
+  headerSignTextColor: '#ffffff',
+  headerSignBgColor: '#1f2a44',
   floorColor: '#f3f3f3',
   items: [],
   images: [],
@@ -74,6 +78,15 @@ export const useBoothStore = create(
 
       toggleHeaderSign: () =>
         get().updateCurrent((l) => ({ headerSign: !(l.headerSign ?? true) })),
+
+      setHeaderSignText: (text) =>
+        get().updateCurrent(() => ({ headerSignText: (text ?? '').slice(0, 60) })),
+
+      setHeaderSignTextColor: (color) =>
+        get().updateCurrent(() => ({ headerSignTextColor: color })),
+
+      setHeaderSignBgColor: (color) =>
+        get().updateCurrent(() => ({ headerSignBgColor: color })),
 
       setFloorColor: (color) => get().updateCurrent(() => ({ floorColor: color })),
 

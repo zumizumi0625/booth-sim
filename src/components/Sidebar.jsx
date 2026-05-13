@@ -13,6 +13,9 @@ export default function Sidebar({ onCloseRequest }) {
   const setCustomSize = useBoothStore((s) => s.setCustomSize)
   const toggleWall = useBoothStore((s) => s.toggleWall)
   const toggleHeaderSign = useBoothStore((s) => s.toggleHeaderSign)
+  const setHeaderSignText = useBoothStore((s) => s.setHeaderSignText)
+  const setHeaderSignTextColor = useBoothStore((s) => s.setHeaderSignTextColor)
+  const setHeaderSignBgColor = useBoothStore((s) => s.setHeaderSignBgColor)
   const setFloorColor = useBoothStore((s) => s.setFloorColor)
   const enterPlacing = useBoothStore((s) => s.enterPlacing)
   const cancelPlacing = useBoothStore((s) => s.cancelPlacing)
@@ -292,6 +295,44 @@ export default function Sidebar({ onCloseRequest }) {
             正面看板（門・h=600mm）
           </label>
         </div>
+
+        {(layout.headerSign ?? true) && (
+          <div className="header-sign-text" style={{ marginTop: 8 }}>
+            <label style={{ fontSize: 12, color: '#6b7280' }}>看板の文字（最大3行）</label>
+            <textarea
+              value={layout.headerSignText ?? ''}
+              onChange={(e) => setHeaderSignText(e.target.value)}
+              placeholder="例: 〇〇株式会社&#10;NEW PRODUCT"
+              rows={2}
+              style={{
+                width: '100%',
+                marginTop: 4,
+                padding: 6,
+                fontSize: 13,
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                boxSizing: 'border-box',
+              }}
+              maxLength={60}
+            />
+            <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: '#6b7280' }}>文字色</span>
+              <ColorSwatchRow
+                value={layout.headerSignTextColor ?? '#ffffff'}
+                onChange={setHeaderSignTextColor}
+                presets={['#ffffff', '#000000', '#facc15', '#f87171', '#60a5fa']}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: '#6b7280' }}>背景</span>
+              <ColorSwatchRow
+                value={layout.headerSignBgColor ?? '#1f2a44'}
+                onChange={setHeaderSignBgColor}
+                presets={['#1f2a44', '#111827', '#ffffff', '#dc2626', '#1d4ed8', '#15803d']}
+              />
+            </div>
+          </div>
+        )}
       </section>
 
       <PrimitiveSection onCloseRequest={onCloseRequest} />
@@ -425,5 +466,37 @@ export default function Sidebar({ onCloseRequest }) {
         </ul>
       </section>
     </aside>
+  )
+}
+
+// 小さな色見本ロウ + ネイティブ色ピッカー。看板の文字色 / 背景色用。
+function ColorSwatchRow({ value, onChange, presets }) {
+  return (
+    <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+      {presets.map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onChange(c)}
+          aria-label={`色 ${c}`}
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: '50%',
+            border: c.toLowerCase() === (value ?? '').toLowerCase() ? '2px solid #111' : '1px solid #d1d5db',
+            backgroundColor: c,
+            cursor: 'pointer',
+            padding: 0,
+          }}
+        />
+      ))}
+      <input
+        type="color"
+        value={value || '#000000'}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ width: 22, height: 22, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
+        aria-label="カスタム色"
+      />
+    </div>
   )
 }
