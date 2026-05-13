@@ -1,9 +1,11 @@
+import { useMemo, useEffect } from 'react'
 import { useBoothStore, snap } from '../stores/useBoothStore'
+import { createSignTexture } from '../lib/textTexture'
 
 const WALL_THICKNESS = 0.05
 const WALL_COLOR = '#ffffff'
 const HEADER_SIGN_HEIGHT = 0.6 // 600mm 固定（業界標準）
-const HEADER_SIGN_COLOR = '#1f2a44' // ダーク系（画像背景の宇宙感に合う標準色）
+const HEADER_SIGN_DEFAULT_BG = '#1f2a44' // ダーク系（画像背景の宇宙感に合う標準色）
 
 function FloorSurface({ size, color, onPlacingHover, onPlacingClick, onBackgroundClick }) {
   const { w, d } = size
@@ -54,22 +56,52 @@ function Wall({ which, position, args, onPlacingHover, onPlacingClick }) {
   )
 }
 
-function HeaderSign({ size, onPlacingHover, onPlacingClick }) {
+function HeaderSign({ size, text, textColor, bgColor, onPlacingHover, onPlacingClick }) {
   const { w, d, h } = size
+  const effectiveBg = bgColor || HEADER_SIGN_DEFAULT_BG
+
+  // 文字が入っている場合のみ CanvasTexture を生成。寸法やテキストが変わるたびに
+  // 再生成し、古いテクスチャは dispose する。
+  const texture = useMemo(() => {
+    if (!text || !text.trim()) return null
+    return createSignTexture({
+      text,
+      color: textColor || '#ffffff',
+      bg: effectiveBg,
+      widthM: w,
+      heightM: HEADER_SIGN_HEIGHT,
+    })
+  }, [text, textColor, effectiveBg, w])
+
+  useEffect(() => {
+    return () => {
+      texture?.dispose?.()
+    }
+  }, [texture])
+
   // 正面（z = +d/2）にブース幅一杯、天井から下 600mm の帯
   // 正面の壁とのZ-fight回避のためわずかに外側へ
   // image 配置時は wall:front 扱い（既存の壁画像配置パイプラインを流用）
   return (
-    <mesh
-      position={[0, h - HEADER_SIGN_HEIGHT / 2, d / 2 + WALL_THICKNESS]}
-      receiveShadow
-      castShadow
-      onPointerMove={(e) => onPlacingHover?.('wall:front', e)}
-      onClick={(e) => onPlacingClick?.('wall:front', e)}
-    >
-      <boxGeometry args={[w, HEADER_SIGN_HEIGHT, WALL_THICKNESS]} />
-      <meshStandardMaterial color={HEADER_SIGN_COLOR} />
-    </mesh>
+    <group position={[0, h - HEADER_SIGN_HEIGHT / 2, d / 2 + WALL_THICKNESS]}>
+      {/* 看板本体（背景色）。boxGeometry をベタ塗りで残し、表面に文字 plane を載せる */}
+      <mesh
+        receiveShadow
+        castShadow
+        onPointerMove={(e) => onPlacingHover?.('wall:front', e)}
+        onClick={(e) => onPlacingClick?.('wall:front', e)}
+      >
+        <boxGeometry args={[w, HEADER_SIGN_HEIGHT, WALL_THICKNESS]} />
+        <meshStandardMaterial color={effectiveBg} />
+      </mesh>
+      {/* 文字テクスチャ。看板の手前にわずかに浮かせて Z-fight 回避 */}
+      {texture && (
+        <mesh position={[0, 0, WALL_THICKNESS / 2 + 0.002]}>
+          <planeGeometry args={[w, HEADER_SIGN_HEIGHT]} />
+          <meshBasicMaterial map={texture} transparent />
+        </mesh>
+      )}
+    </group>
   )
 }
 
@@ -132,6 +164,9 @@ export default function Booth({ onPlacingHover, onPlacingClick, onBackgroundClic
       {(layout.headerSign ?? true) && (
         <HeaderSign
           size={size}
+          text={layout.headerSignText ?? ''}
+          textColor={layout.headerSignTextColor ?? '#ffffff'}
+          bgColor={layout.headerSignBgColor ?? HEADER_SIGN_DEFAULT_BG}
           onPlacingHover={onPlacingHover}
           onPlacingClick={onPlacingClick}
         />
